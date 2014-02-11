@@ -12,6 +12,7 @@ py_src/lingtree/export2mrg.py
 py_src/lingtree/mrg2export.py
 py_src/lingtree/penn.py
 py_src/lingtree/spmrl.py
+py_src/lingtree/tabular.py
 py_src/lingtree/tigerxml.py
 py_src/lingtree/tree.py
 py_src/lingtree/wrappers.py

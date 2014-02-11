@@ -3,7 +3,7 @@
 this module performs conversion from and to the Negra-Export
 and JSON-export formats
 '''
-import pytree.tree as tree
+import lingtree.tree as tree
 import sys
 import re
 
