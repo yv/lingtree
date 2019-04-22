@@ -13,5 +13,6 @@ setup(name='LingTree',
       author='Yannick Versley',
       author_email='versley@cl.uni-heidelberg.de',
       packages=['lingtree'],
-      package_dir={'':'py_src'}
+      package_dir={'':'py_src'},
+      install_requires=['future', 'PyYAML']
       )

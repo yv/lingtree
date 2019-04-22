@@ -2,12 +2,12 @@
 package/program for transforming trees (e.g. to a format needed to
 train a parser model)
 '''
+from __future__ import print_function
 
 import sys
-from itertools import izip
 import optparse
-from pytree import export, export2mrg, wrappers, tree, read_trees
-from pcfg_site_config import load_plugin
+from . import export, export2mrg, wrappers, tree, read_trees
+from .util import load_plugin
 
 oparse = optparse.OptionParser()
 oparse.add_option('--fmt', dest='format',
@@ -27,10 +27,10 @@ oparse.add_option('--range', dest='range', default=None)
 
 
 def munge_cats(node):
-    '''
+    """
     adds edge labels to nodes and makes categories compatible with
     penn-style format
-    '''
+    """
     w = '%s:%s' % (node.cat, node.edge_label)
     w = w.replace('(', '-LRB-')
     w = w.replace(')', '-RRB-')
@@ -47,10 +47,10 @@ def munge_cats(node):
 
 
 def munge_cats_nolabel(node):
-    '''
+    """
     makes categories compatible with
     penn-style format
-    '''
+    """
     w = node.cat
     w = w.replace('(', '-LRB-')
     w = w.replace(')', '-RRB-')
@@ -68,6 +68,8 @@ def munge_cats_nolabel(node):
 
 PUNCT_TRANSFORMS = [load_plugin('tree_transform', x)
                     for x in 'attach_parens attach_punct_alt'.split()]
+
+
 def apply_transforms(t, transforms, opts):
     """applies the transforms from transforms"""
     for fn in transforms:
@@ -93,7 +95,7 @@ def apply_pipeline(t, pipeline, opts):
         if opts.outputenc != 'UTF-8':
             line = line.decode('UTF-8')
             line = line.encode(opts.outputenc)
-        for n, w in izip(t.terminals, line.strip().split()):
+        for n, w in zip(t.terminals, line.strip().split()):
             n.word = w
     else:
         if opts.inputenc != opts.outputenc:
@@ -106,7 +108,7 @@ def write_tree_vpf(t, f):
     """writes a tree in the VPF format expected by mkrules"""
     n = tree.NontermNode('Start')
     n.children = t.roots
-    print >>f, n.to_full(['edge_label'])
+    print(n.to_full(['edge_label']), file=f)
 
 
 def write_tree_bky(t, f):
@@ -115,7 +117,7 @@ def write_tree_bky(t, f):
     vroot = tree.NontermNode('ROOT')
     vroot.children = t.roots
     munge_cats_nolabel(vroot)
-    print >>f, vroot.to_full([]).replace('\\', '')
+    print(vroot.to_full([]).replace('\\', ''), file=f)
 
 
 def write_tree_bkylab(t, f):
@@ -124,7 +126,7 @@ def write_tree_bkylab(t, f):
     vroot = tree.NontermNode('ROOT')
     vroot.children = t.roots
     munge_cats(vroot)
-    print >>f, vroot.to_full([]).replace('\\', '')
+    print(vroot.to_full([]).replace('\\', ''), file=f)
 
 
 def write_tree_bllip(t, f):
@@ -135,11 +137,11 @@ def write_tree_bllip(t, f):
     vroot = tree.NontermNode('S1')
     vroot.children = t.roots
     munge_cats_nolabel(vroot)
-    print >>f, vroot.to_full([]).replace('\\', '')
+    print(vroot.to_full([]).replace('\\', ''), file=f)
 
 
 def tree_writer(opts):
-    "returns the tree writer appropriate for these options"
+    """returns the tree writer appropriate for these options"""
     fmt = opts.target
     if fmt == 'vpf':
         write_tree = write_tree_vpf
@@ -149,9 +151,11 @@ def tree_writer(opts):
         write_tree = write_tree_bllip
     elif fmt == 'export':
         def write_tree(t, f):
-            "we need to add the #EOS, since write_sentence does not."
+            """we need to add the #EOS, since write_sentence does not."""
             export.write_sentence_tabs(t, f)
-            print >>f, '#EOS %s' % (t.sent_no,)
+            print('#EOS %s' % (t.sent_no,), file=f)
+    else:
+        raise ValueError('No tree writer for:'+fmt)
     return write_tree
 
 
@@ -177,20 +181,20 @@ def trees_in_range(trees, ranges):
     for i, t in enumerate(trees):
         if not in_range:
             if i + 1 >= ranges[r_id][0]:
-                print >>sys.stderr, "Starting ranges %d-%d" % (
-                    ranges[r_id][0], ranges[r_id][1])
+                print("Starting ranges %d-%d" % (
+                    ranges[r_id][0], ranges[r_id][1]), file=sys.stderr)
                 in_range = True
         else:
             if i + 1 >= ranges[r_id][1]:
-                print >>sys.stderr, "Stopped ranges %d-%d" % (
-                    ranges[r_id][0], ranges[r_id][1])
+                print("Stopped ranges %d-%d" % (
+                    ranges[r_id][0], ranges[r_id][1]), file=sys.stderr)
                 in_range = False
         if in_range:
             yield t
 
 
 def find_transforms(opts):
-    '''retrieves the tree transforms that are needed for the given options'''
+    """retrieves the tree transforms that are needed for the given options"""
     if opts.xform is None:
         return []
     if opts.xform == 'tiger':
@@ -208,9 +212,10 @@ def find_transforms(opts):
 
 
 def do_transform_main(argv=None):
-    ''' puts together a transformation
-        pipeline and runs it
-    '''
+    """
+    puts together a transformation
+    pipeline and runs it
+    """
     opts, args = oparse.parse_args(argv)
     trees = read_trees(args[0], opts)
     write_tree = tree_writer(opts)
@@ -226,6 +231,7 @@ def do_transform_main(argv=None):
         apply_transforms(t, xforms, opts)
         apply_pipeline(t, pipeline, opts)
         write_tree(t)
+
 
 if __name__ == '__main__':
     do_transform_main()

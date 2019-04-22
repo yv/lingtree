@@ -21,9 +21,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
 
+from __future__ import print_function
 import optparse
 from lingtree import read_trees, tree, export
-from cStringIO import StringIO
+from io import StringIO
 
 css_stylesheet = """
 <style type="text/css">
@@ -155,7 +156,7 @@ def layout_terminals(nodes, extra_attrs_t=None):
             for k in extra_attrs_t:
                 w = max(w, determine_textwidth(getattr(n, k)))
         w += 4
-        n.x_pos = xpos + w / 2
+        n.x_pos = xpos + w // 2
         n.width = w
         xpos += w + NODE_SPACE
 
@@ -170,16 +171,16 @@ def layout_crossing(node_root):
         lst.append((n.end - n.start, -i, n))
     lst.sort()
     for width, k, n in lst:
-        maxh = 1 + max([height[i] for i in xrange(n.start, n.end)])
+        maxh = 1 + max([height[i] for i in range(n.start, n.end)])
         n.height = maxh
-        for i in xrange(n.start, n.end):
+        for i in range(n.start, n.end):
             height[i] = maxh
     maxh = node_root.height
     for width, k, n in lst:
         n.y_pos = maxh - n.height
         if not n.isTerminal():
             n.width = determine_textwidth(n.cat)
-            n.x_pos = (n.children[0].x_pos + n.children[-1].x_pos) / 2
+            n.x_pos = (n.children[0].x_pos + n.children[-1].x_pos) // 2
     return maxh - 1
 
 
@@ -192,7 +193,7 @@ def layout_topdown(node, depth=0):
         cdepth = layout_topdown(n, depth + 1)
         maxdepth = max(maxdepth, cdepth)
     w = determine_textwidth(node.cat)
-    node.x_pos = (node.children[0].x_pos + node.children[-1].x_pos) / 2
+    node.x_pos = (node.children[0].x_pos + node.children[-1].x_pos) // 2
     node.width = w
     node.y_pos = depth
     return maxdepth
@@ -308,10 +309,10 @@ def split_trees_to_files(instream, prefix):
             if outstream is not None:
                 outstream.write('</body>\n</html>\n')
                 outstream.close()
-                print '%s-%s.html: sentence %d-%d' % (
-                    prefix, part_no, from_no, int(t.sent_no) - 1)
+                print('%s-%s.html: sentence %d-%d' % (
+                    prefix, part_no, from_no, int(t.sent_no) - 1))
             part_no += 1
-            outstream = file('%s-%s.html' % (prefix, part_no), 'w')
+            outstream = open('%s-%s.html' % (prefix, part_no), 'w')
             outstream.write('''
 <html>
 <head>
@@ -327,8 +328,9 @@ def split_trees_to_files(instream, prefix):
     if outstream:
         outstream.write('</body>\n</html>\n')
         outstream.close()
-        print '%s-%s.html: sentence %d-%d' % (
-            prefix, part_no, from_no, int(t.sent_no) - 1)
+        print('%s-%s.html: sentence %d-%d' % (
+            prefix, part_no, from_no, int(t.sent_no) - 1))
+
 
 oparse = optparse.OptionParser()
 oparse.add_option('--fmt', dest='format',
@@ -338,15 +340,17 @@ oparse.add_option('--encoding', dest='inputenc',
 oparse.add_option('-C', '--crossing', dest='crossing',
                   action='store_true', default=False)
 
+
 def write_html_header(f_html):
     f_html.write(css_stylesheet)
     f_html.write('</head>\n<body>\n')
+
 
 def csstree_main(argv=None):
     """converts a file with syntax trees to HTML"""
     opts, args = oparse.parse_args(argv)
     fname_exp, fname_html = args
-    f_html = file(fname_html, 'w')
+    f_html = open(fname_html, 'w')
     f_html.write('''
 <html>
 <head>

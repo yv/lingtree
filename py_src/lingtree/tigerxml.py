@@ -1,13 +1,15 @@
-'''
+"""
 deals with the TigerXML file format for treebanks.
 Currently, only allows reading.
-'''
+"""
+from __future__ import print_function
 import sys
-from lingtree.tree import Tree, TerminalNode, NontermNode
+from .tree import Tree, TerminalNode, NontermNode
 import xml.etree.cElementTree as etree
 
+
 def get_terminals(graph, term_ref, encoding):
-    '''makes terminals out of all the TigerXML terminals'''
+    """makes terminals out of all the TigerXML terminals"""
     terminals = []
     for n in graph.find('terminals').findall('t'):
         w = n.attrib['word']
@@ -23,9 +25,11 @@ def get_terminals(graph, term_ref, encoding):
         terminals.append(trm)
     return terminals
 
-#pylint:disable=C0103
+# pylint:disable=C0103
+
+
 def tiger_sent(node, encoding=None):
-    'decodes the TigerXML sentence from the given XML node'
+    """decodes the TigerXML sentence from the given XML node"""
     t = Tree()
     term_ref = {}
     graph = node.find('graph')
@@ -79,22 +83,23 @@ def assign_node_ids(t):
     if hasattr(t, 'xml_id'):
         sent_id = t.xml_id
     elif hasattr(t, 'sent_no'):
-        sent_id = 's%s'%(t.sent_no,)
+        sent_id = 's%s' % (t.sent_no,)
         t.xml_id = sent_id
     elif hasattr(t, 'sent_id'):
         sent_id = str(t.sent_id)
         t.xml_id = sent_id
     for i, n in enumerate(t.terminals):
         if not hasattr(n, 'xml_id'):
-            n.xml_id = '%s_%s'%(sent_id, i+1)
+            n.xml_id = '%s_%s' % (sent_id, i+1)
     node_id = 500
     for n in t.bottomup_enumeration():
         if n.isTerminal():
             continue
         if hasattr(n, 'xml_id'):
             continue
-        n.xml_id = '%s_n%s'%(sent_id, node_id)
+        n.xml_id = '%s_n%s' % (sent_id, node_id)
         node_id += 1
+
 
 def make_string(n, attname):
     """look for an attribute of a node and returns the attribute, or --"""
@@ -105,16 +110,18 @@ def make_string(n, attname):
         else:
             return str(val)
 
+
 def read_trees(fname, encoding):
-    '''yields the sequence of trees in an XML file'''
-    #pylint:disable=W0612
+    """yields the sequence of trees in an XML file"""
+    # pylint:disable=W0612
     for ev, elem in etree.iterparse(fname):
         if elem.tag == 's':
             yield tiger_sent(elem, encoding)
             elem.clear()
 
+
 def encode_tree(t, encoding='ISO-8859-15'):
-    '''returns an XML node describing a tree'''
+    """returns an XML node describing a tree"""
     assign_node_ids(t)
     s_node = etree.Element('s')
     s_node.attrib['id'] = t.xml_id
@@ -146,7 +153,7 @@ def encode_tree(t, encoding='ISO-8859-15'):
     else:
         vroot = etree.SubElement(nts_node, 'nt',
                                  cat='VROOT',
-                                 id='%s_VROOT'%(t.xml_id,))
+                                 id='%s_VROOT' % (t.xml_id,))
         for n in t.roots:
             edge = etree.SubElement(vroot, 'edge',
                                     label=make_string(n, 'edge_label'),
@@ -155,13 +162,14 @@ def encode_tree(t, encoding='ISO-8859-15'):
 
 
 def tiger2export_main(args):
-    '''converts one file into .export format (body only)'''
-    from pytree import export
+    """converts one file into .export format (body only)"""
+    from . import export
     for i, t in enumerate(read_trees(args[0], 'ISO-8859-15')):
         # BOS ([0-9]+) +[^ ]+ +[^ ]+ ([0-9]+)([ \t]*%%.*)?')
-        print "#BOS %d -1 -1 0" % (i + 1,)
+        print("#BOS %d -1 -1 0" % (i + 1,))
         export.write_sentence_tabs(t, sys.stdout)
-        print "#EOS %d" % (i + 1,)
+        print("#EOS %d" % (i + 1,))
+
 
 if __name__ == '__main__':
     tiger2export_main(sys.argv[1:])

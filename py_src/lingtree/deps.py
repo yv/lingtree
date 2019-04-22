@@ -1,7 +1,8 @@
-'''
+"""
 Performs dependency conversion
-'''
+"""
 import sys
+from past.builtins import basestring
 from collections import defaultdict
 
 messages = {
@@ -14,10 +15,11 @@ messages = {
 def default_warning_handler(w, args):
     sys.stderr.write(messages[w] % args)
 
+
 warning_handler = default_warning_handler
 
 
-class DepsError(StandardError):
+class DepsError(Exception):
 
     def __init__(self, node, msg):
         self.node = node
@@ -182,11 +184,11 @@ class SimpleDepExtractor:
         if pos < 0 or pos >= len(node.children):
             warning_handler('nohead', (node,))
             pos = len(node.children) - 1
-        headNode = node.children[pos]
-        head = self.treedep(headNode)
+        head_node = node.children[pos]
+        head = self.treedep(head_node)
         node.head = head
-        self.attach(node.children[0:pos], headNode, node)
-        self.attach(node.children[pos + 1:], headNode, node)
+        self.attach(node.children[0:pos], head_node, node)
+        self.attach(node.children[pos + 1:], head_node, node)
         return head
 
     def attach(self, nodes, headNode, parent):
@@ -202,10 +204,10 @@ class SimpleDepExtractor:
 
 
 def read_headrules(f):
-    '''
+    """
     reads a headrules file similar to those used by rparse
     or disco-dop
-    '''
+    """
     rules = defaultdict(list)
     for s_line in f:
         if s_line[0] == '%':
@@ -221,5 +223,5 @@ def read_headrules(f):
         rules_lhs = rules[cat_lhs]
         cats_rhs = [x.upper() for x in line[2:]]
         rules_lhs.append((cats_rhs, None, direction))
-    all_rules = [[[lhs], rhs] for (lhs, rhs) in rules.items()]+ [[[None], [(None, 'l')]]]
+    all_rules = [[[lhs], rhs] for (lhs, rhs) in rules.items()] + [[[None], [(None, 'l')]]]
     return all_rules

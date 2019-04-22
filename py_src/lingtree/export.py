@@ -1,14 +1,17 @@
 #!/usr/bin/env python
-'''
+"""
 this module performs conversion from and to the Negra-Export
 and JSON-export formats
-'''
-import lingtree.tree as tree
+"""
+from __future__ import division
+from builtins import str
+from . import tree
 import sys
 import re
 
-allowable_secedge = set(['refint', 'refvc', 'refmod', 'refcontr', 'EN',
-                         'HD', 'SB', 'OA', 'DA', 'CP', 'MO', 'EP', 'SVP'])
+allowable_secedge = {
+    'refint', 'refvc', 'refmod', 'refcontr',
+    'EN', 'HD', 'SB', 'OA', 'DA', 'CP', 'MO', 'EP', 'SVP'}
 
 hash_token_re = re.compile('^#\\s')
 # reads lines in an export file and creates a nodes structure
@@ -77,8 +80,8 @@ def read_sentence(f, format=3):
             assert n.parent_id in t.node_table, (n.parent_id, f.name, f.tell())
             n.parent = t.node_table[n.parent_id]
             n.parent.children.append(n)
-        del(n.parent_id)
-    for n in t.node_table.itervalues():
+        del n.parent_id
+    for n in t.node_table.values():
         if n.parent_id == '0':
             n.parent = None
             t.roots.append(n)
@@ -86,7 +89,7 @@ def read_sentence(f, format=3):
             assert n.parent_id in t.node_table, (n.parent_id, f.name, f.tell())
             n.parent = t.node_table[n.parent_id]
             n.parent.children.append(n)
-        del(n.parent_id)
+        del n.parent_id
         n.secedge = None
     for a, rel, b in secedges:
         try:
@@ -120,6 +123,7 @@ def comment2attrs(cm):
     if zzspell:
         attrs['~'] = ' '.join(zzspell)
     return attrs
+
 
 sorting_dict = dict(((x, i)
                     for (i, x) in enumerate(['LM', 'R', 'DC', 'LU', '~'])))
@@ -214,8 +218,7 @@ def write_sentence(t, f):
             extra += '%% ' + n.comment
         f.write('%-23s %-7s %-15s %-7s %s%s\n' % (n.word, n.cat, n.morph,
                                                   n.edge_label, parent_id, extra))
-    all_nodes = t.node_table.values()
-    all_nodes.sort(key=lambda n: n.id)
+    all_nodes = sorted(t.node_table.values(), key=lambda n: n.id)
     for n in all_nodes:
         if n.parent:
             parent_id = n.parent.id
@@ -234,7 +237,8 @@ def pad_with_tabs(s, n=1):
     if len(s) >= 8 * n:
         return s + '\t'
     else:
-        return s + '\t' * (n - len(s) / 8)
+        return s + '\t' * (n - len(s) // 8)
+
 
 def write_sentence_tabs(t, f, fmt=3, encoding='ISO-8859-15'):
     """writes a sentence in export format
@@ -267,15 +271,14 @@ def write_sentence_tabs(t, f, fmt=3, encoding='ISO-8859-15'):
         else:
             lemma_column=''
         n_word = n.word
-        if type(n_word) == unicode:
-            n_word=n_word.encode(encoding)
-        f.write('%s%s%s%s%s%s%s\n'%(pad_with_tabs(n_word,3),
+        if type(n_word) == str:
+            n_word = n_word.encode(encoding)
+        f.write('%s%s%s%s%s%s%s\n'%(pad_with_tabs(n_word, 3),
                                     lemma_column,
-                                    pad_with_tabs(n.cat,1),
-                                    pad_with_tabs(n.morph,2),
-                                    pad_with_tabs(n.edge_label,1),parent_id,extra))
-    all_nodes=t.node_table.values()
-    all_nodes.sort(key=lambda n: n.id)
+                                    pad_with_tabs(n.cat, 1),
+                                    pad_with_tabs(n.morph, 2),
+                                    pad_with_tabs(n.edge_label, 1), parent_id, extra))
+    all_nodes = sorted(t.node_table.values(), key=lambda n: n.id)
     if fmt == 4:
         lemma_column = pad_with_tabs('--', 3)
     else:
@@ -311,7 +314,7 @@ def write_sentence_tabs(t, f, fmt=3, encoding='ISO-8859-15'):
 def latin2utf(s):
     if s is None:
         return None
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         us = s
     else:
         us = s.decode('ISO-8859-15')
@@ -319,35 +322,35 @@ def latin2utf(s):
 
 
 def utf2latin(s):
-    if not isinstance(s, basestring):
-        return s
-    if type(s) == unicode:
+    if isinstance(s, str):
         us = s
-    else:
+    elif isinstance(s, bytes):
         us = s.decode('UTF-8')
+    else:
+        return s
     return us.encode('ISO-8859-15', 'replace')
 
 
 def uni2str(s, encoding):
     if encoding is None:
         return s
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         return s.encode(encoding)
     return s
 
 
 def str2uni(s, encoding):
-    if isinstance(s, str):
+    if isinstance(s, bytes):
         return s.decode(encoding)
     return s
 
 
 def to_json(t, encoding='ISO-8859-15'):
-    '''
+    """
     converts a tree to JSON-export data,
     using the specified encoding for
     non-unicode strings
-    '''
+    """
     terms = []
     for n in t.terminals:
         if n.parent:
@@ -371,10 +374,10 @@ def to_json(t, encoding='ISO-8859-15'):
 
 
 def from_json(values, encoding='ISO-8859-15'):
-    '''
+    """
     decodes a JSON-export object to a pytree Tree
     object, using the specified encoding.
-    '''
+    """
     t = tree.Tree()
     for (pos, fields_u) in enumerate(values['terminals']):
         fields = [uni2str(s, encoding) for s in fields_u]
@@ -403,7 +406,7 @@ def from_json(values, encoding='ISO-8859-15'):
             n.parent = t.node_table[n.parent_id]
             n.parent.children.append(n)
         del n.parent_id
-    for n in t.node_table.itervalues():
+    for n in t.node_table.values():
         if n.parent_id == '0' or n.parent_id == 0:
             n.parent = None
             t.roots.append(n)
@@ -448,6 +451,7 @@ def write_sentence_prolog(f, nodes, indent=0):
         comma = True
     f.write(']')
 
+
 bos_pattern = re.compile('#BOS ([0-9]+) +[^ ]+ +[^ ]+ ([0-9]+)([ \t]*%%.*)?')
 
 
@@ -455,7 +459,7 @@ def transform_filter(fname, proc):
     """reads in an export file and processes the tree with proc"""
     f = open(fname, 'r')
     l = f.readline()
-    while (l != ''):
+    while l != '':
         sys.stdout.write(l)
         m = bos_pattern.match(l)
         if m:
@@ -463,7 +467,7 @@ def transform_filter(fname, proc):
             t = read_sentence(f)
             proc(t)
             write_sentence(t, sys.stdout)
-            sys.stdout.write('#EOS %s\n' % (sent_no))
+            sys.stdout.write('#EOS %s\n' % (sent_no,))
         l = f.readline()
     f.close()
 
@@ -471,7 +475,7 @@ def transform_filter(fname, proc):
 def read_trees(f, fmt=3):
     global doc_no
     l = f.readline()
-    while(l != ''):
+    while l != '':
         if l.strip() == '#FORMAT 4':
             fmt = 4
         m = bos_pattern.match(l)

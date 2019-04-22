@@ -1,16 +1,18 @@
-'''
+"""
 various subprocess wrappers, mainly for parsing and
 token-based preprocessing in parsing
-'''
+"""
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
 import optparse
 import os.path
 import sys
-from itertools import izip
 from subprocess import Popen, PIPE
 import logging
 
-from pcfg_site_config import get_config_var, load_plugin
-from pytree import penn, tree
+from .util import get_config_var, load_plugin
+from . import penn, tree
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -64,12 +66,10 @@ def reinsert_punctuation_tree(t, punct, punct_tag='$('):
 
 
 class LineBasedWrapper(object):
-
-    '''
+    """
     process-based wrapper that (normally) processes things
     line by line
-    '''
-
+    """
     def __init__(self, cmd, env=None):
         '''creates a wrapper for a command process.
         we don't create the process right away; rather,
@@ -82,7 +82,7 @@ class LineBasedWrapper(object):
         self.stdin = self.stdout = self.proc = None
 
     def process_line(self, line):
-        '''processes a line'''
+        """processes a line"""
         if self.proc is None:
             self.proc = Popen(self.cmd,
                               shell=False,
@@ -98,8 +98,8 @@ class LineBasedWrapper(object):
         return self.stdout.readline()
 
     def process_tokens(self, tokens):
-        '''assuming the line consists of space-separated tokens,
-        processes the given tokens'''
+        """assuming the line consists of space-separated tokens,
+        processes the given tokens"""
         result = self.process_line(' '.join(tokens))
         return result.strip().split()
 
@@ -108,14 +108,14 @@ class LineBasedWrapper(object):
 
 class BonsaiPreprocess(object):
 
-    '''preprocessing pipeline for the french Bonsai
-    wrapper around Berkeley'''
+    """preprocessing pipeline for the french Bonsai
+    wrapper around Berkeley"""
 
     def __init__(self, bonsai_dir):
         self.bonsai_dir = bonsai_dir
         cmds = [[os.path.join(bonsai_dir, 'src/do_desinflect.py'),
                  '--serializedlex', '--inputformat', 'tok',
-                os.path.join(bonsai_dir, 'resources/lefff/lefff')],
+                 os.path.join(bonsai_dir, 'resources/lefff/lefff')],
                 [os.path.join(bonsai_dir, 'src/do_substitute_tokens.py'),
                  '--inputformat', 'tok',
                  '--ldelim', '-K', '--rdelim', 'K-',
@@ -127,7 +127,7 @@ class BonsaiPreprocess(object):
         # need to follow up by recode to latin1... why?
 
     def process_line(self, line):
-        '''runs one line through all preprocessing steps, then the parser.'''
+        """runs one line through all preprocessing steps, then the parser."""
         result = line
         for wrapper in self.wrappers:
             result = wrapper.process_line(result)
@@ -136,9 +136,9 @@ class BonsaiPreprocess(object):
 
 class ParserWrapper(object):
 
-    '''
+    """
     adds functionality such as punctuation removal and assorted goodies.
-    '''
+    """
 
     def __init__(self, parser,
                  preprocess=None,
@@ -175,7 +175,7 @@ class ParserWrapper(object):
             return None
         words1 = [w.replace(' ', '_') for w in words0]
         s = ' '.join(words1)
-        if isinstance(s, unicode):
+        if isinstance(s, str):
             s = s.encode('UTF-8')
         if self.preprocess:
             for proc in self.preprocess:
@@ -184,7 +184,7 @@ class ParserWrapper(object):
         if t is None:
             return None
         assert len(t.terminals) == len(words0), (t.terminals, words0)
-        for w, n in izip(words0, t.terminals):
+        for w, n in zip(words0, t.terminals):
             n.word = w
         if self.punct == 'remove_quotes':
             reinsert_punctuation_tree(t, punct)
@@ -252,7 +252,7 @@ class BUBSWrapper(BerkeleyWrapper):
                                      '-fom', fom, '-beamModel', beam,
                                      '-if', 'Token', '-v', 'warning'])
         self.preprocess = preprocess
-        print >>sys.stderr, "running:", ' '.join(self.cmd)
+        print("running:", ' '.join(self.cmd), file=sys.stderr)
 
 
 # pylint:disable=C0103
@@ -332,6 +332,7 @@ def make_postprocessor(descr):
     """retrieves/creates a certain postprocessor"""
     return load_plugin('tree_transform', descr)
 
+
 def parser_from_yaml(stuff):
     '''
     given a description (from YAML or JSON),
@@ -357,6 +358,7 @@ def parser_from_yaml(stuff):
                                 punct=stuff.get('punct', None),
                                 postprocess=postprocess)
         return wrapper
+
 
 token_pipeline_opt = optparse.OptionParser()
 
