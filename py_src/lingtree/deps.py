@@ -144,7 +144,7 @@ class SimpleDepExtractor:
     Uses a table to do head rule projection
     '''
 
-    def __init__(self, hr_table, punctCats=[], determine_label=None,
+    def __init__(self, hr_table, punctCats=(), determine_label=None,
                  root_label = None):
         self.headRules = make_headrules(hr_table)
         self.punctCats = punctCats

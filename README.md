@@ -3,6 +3,9 @@
 This is a small library that started out as part of PyTree, but which is
 convenient to have as a standalone library without external dependencies.
 
+While the main goal is to have idiomatic Python 3 code, LingTree aims to
+be an option for Python 2 as well.
+
 ## Entry points
 
 You can create a HTML display out of trees in Negra Export or TigerXML

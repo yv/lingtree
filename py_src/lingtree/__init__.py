@@ -4,10 +4,6 @@ import optparse
 import sys
 import re
 from .conll import detect_encoding, encoding_equivalent, merge_trees_generic
-from .wrappers import make_postprocessor
-    #, make_postprocessor_train
-def make_postprocessor_train(x):
-    assert False, x
 from itertools import chain
 
 def add_tree_options(oparse):
@@ -204,7 +200,7 @@ def read_trees_meta(fname, opts=None):
         trees = spmrl.read_spmrl(open(fname, 'r', encoding='UTF-8'))
     elif opts.format == 'tigerxml':
         from . import tigerxml
-        trees = tigerxml.read_trees(fname, opts.tree_enc)
+        trees = tigerxml.read_trees(fname)
     elif opts.format == 'json':
         from . import export
         trees = export.read_trees_json(open(fname, 'r', encoding='UTF-8'))
@@ -234,15 +230,6 @@ def write_trees_meta(fname, trees, meta=None, fmt=None, **kw):
 
 oparse_convert = optparse.OptionParser(usage='%prog [options] input out.json')
 add_tree_options(oparse_convert)
-oparse_convert.add_option('-x', '--xform', dest='xform',
-                          help='apply transforms (separated by commas)')
-oparse_convert.add_option('-R', dest='reverse',
-                          action='store_const', const='roundtrip',
-                          default='train',
-                          help='do forward and reverse transform (roundtrip)')
-oparse_convert.add_option('-r', dest='reverse',
-                          action='store_const', const='reverse',
-                          help='only do reverse transform (testing)')
 oparse_convert.add_option('--outfmt', dest='outfmt',
                           help='output format (default:json)',
                           default='json',
@@ -266,25 +253,13 @@ def transformed_trees(trees, xforms):
 
 def convert_main(argv=None):
     from . import export
-    import json
     opts, args = oparse_convert.parse_args(argv)
     if len(args) != 2:
         oparse_convert.print_help()
         sys.exit(1)
-    if opts.xform is None:
-        xforms = []
-    else:
-        s_xform = opts.xform.split(',')
-        xforms = []
-        if opts.reverse in ['train', 'roundtrip']:
-            xforms += [make_postprocessor_train(x) for x in s_xform]
-        if opts.reverse in ['reverse', 'roundtrip']:
-            xforms += [make_postprocessor(x) for x in s_xform]
     meta, trees = read_trees_meta(args[0], opts)
     if opts.preproc is not None:
         trees = merge_trees_generic(trees, opts.preproc, opts.preproc_fmt)
-    if xforms:
-        trees = transformed_trees(trees, xforms)
     write_trees_meta(args[1], trees, meta, opts.outfmt,
                      **opts.__dict__)
 
@@ -299,15 +274,6 @@ def join_main(argv=None):
     if len(args) < 2:
         oparse_convert.print_help()
         sys.exit(1)
-    if opts.xform is None:
-        xforms = []
-    else:
-        s_xform = opts.xform.split(',')
-        xforms = []
-        if opts.reverse in ['train', 'roundtrip']:
-            xforms += [make_postprocessor_train(x) for x in s_xform]
-        if opts.reverse in ['reverse', 'roundtrip']:
-            xforms += [make_postprocessor(x) for x in s_xform]
     all_meta = []
     all_trees = []
     for arg in args[:-1]:
@@ -316,8 +282,6 @@ def join_main(argv=None):
         all_trees.append(trees)
     meta = merge_meta(all_meta)
     trees = chain(*all_trees)
-    if xforms:
-        trees = transformed_trees(trees, xforms)
     write_trees_meta(args[-1], trees, meta, opts.outfmt,
                      **opts.__dict__)
 
@@ -326,15 +290,6 @@ add_tree_options(oparse_totext)
 oparse_totext.add_option('-P', dest='attrs',
                          help='additional attribute',
                          default=[], action='append')
-oparse_totext.add_option('-x', '--xform', dest='xform',
-                         help='apply transforms (separated by commas)')
-oparse_totext.add_option('-R', dest='reverse',
-                         action='store_const', const='roundtrip',
-                         default='train',
-                         help='do forward and reverse transform (roundtrip)')
-oparse_totext.add_option('-r', dest='reverse',
-                         action='store_const', const='reverse',
-                         help='only do reverse transform (testing)')
 oparse_totext.add_option('--outfmt', dest='outfmt',
                          help='output format (default:txt)',
                          default='txt',
@@ -351,18 +306,7 @@ def totext_main(argv=None):
     else:
         field_sep = '\t'
         line_sep = '\n'
-    if opts.xform is None:
-        xforms = []
-    else:
-        s_xform = opts.xform.split(',')
-        xforms = []
-        if opts.reverse in ['train', 'roundtrip']:
-            xforms += [make_postprocessor_train(x) for x in s_xform]
-        if opts.reverse in ['reverse', 'roundtrip']:
-            xforms += [make_postprocessor(x) for x in s_xform]
     trees = read_trees(args[0], opts)
-    if xforms:
-        trees = transformed_trees(trees, xforms)
     with open(args[1], 'w', encoding='UTF-8') as f_out:
         for t in trees:
             lines = []
