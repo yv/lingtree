@@ -2,9 +2,7 @@
 from setuptools import setup
 
 __doc__='''
-PyTree version that only includes the pytree library
-(reading and writing of mrg, tigerxml/export trees)
-which should run fine on plain Python3 (including Win+Anaconda)
+Utility functions to read and write common treebank formats
 '''
 
 setup(name='LingTree',
@@ -17,6 +15,10 @@ setup(name='LingTree',
       install_requires=['future', 'PyYAML'],
       entry_points={
             'console_scripts': [
-
+                  'lingtree_convert=lingtree:convert_main',
+                  'lingtree_totext=lingtree:totext_main',
+                  'lingtree_merge=lingtree.conll:merge_main',
+                  'lingtree_recombine=lingtree.conll:recombine_main',
+                  'lingtree_html=lingtree.csstree:csstree_main'
             ]}
       )

@@ -1,5 +1,21 @@
 #!/usr/bin/python
 # -*- encoding: iso-8859-15 -*-
+# Copyright 2008-2020 Yannick Versley
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+# associated documentation files (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all copies or substantial
+# portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+# TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
 """
 Utility functions to deal with normal bracketed format
 """
@@ -111,16 +127,8 @@ def line2parse(s):
     return node
 
 
-def recode_utf8_latin1(w):
-    return w.decode('UTF-8').encode('ISO-8859-15')
-
-
-def read_spmrl(f, props2morph=None, encoding=None):
-    if encoding in [None, 'UTF-8']:
-        recode_fn = None
-    elif encoding in ['ISO-8859-15']:
-        recode_fn = recode_utf8_latin1
+def read_spmrl(f, props2morph=None):
     for l in f:
-        node = spmrl2nodes(tokenize_spmrl(l.strip()), recode_fn, props2morph)
+        node = spmrl2nodes(tokenize_penn(l.strip()), props2morph)
         t = node2tree(node, node.cat == 'VROOT')
         yield t

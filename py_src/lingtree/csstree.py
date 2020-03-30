@@ -1,27 +1,25 @@
 #!/usr/bin/env python
 
-##
-# csstree.py -- converts trees in .export files to HTML
-# version:
-##
+# Copyright 2008-2020 Yannick Versley
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+# associated documentation files (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all copies or substantial
+# portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+# TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
 
-# Copyright 2008 Yannick Versley
-##
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-##
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-##
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
 
 from __future__ import print_function
+from builtins import open
 import optparse
 from lingtree import read_trees, tree, export
 from io import StringIO
@@ -335,8 +333,6 @@ def split_trees_to_files(instream, prefix):
 oparse = optparse.OptionParser()
 oparse.add_option('--fmt', dest='format',
                   choices=['export', 'tigerxml', 'spmrl'])
-oparse.add_option('--encoding', dest='inputenc',
-                  default='latin1')
 oparse.add_option('-C', '--crossing', dest='crossing',
                   action='store_true', default=False)
 
@@ -350,14 +346,14 @@ def csstree_main(argv=None):
     """converts a file with syntax trees to HTML"""
     opts, args = oparse.parse_args(argv)
     fname_exp, fname_html = args
-    f_html = open(fname_html, 'w')
+    f_html = open(fname_html, 'w', encoding='UTF-8')
     f_html.write('''
 <html>
 <head>
 <title>csstree output</title>
 ''')
     write_html_header(f_html)
-    for t in read_trees(fname_exp, opts.format, opts.inputenc):
+    for t in read_trees(fname_exp, opts.format):
         f_html.write('<p>%s: %s</p>\n' % (
             t.sent_no, ' '.join([n.word for n in t.terminals])))
         write_html(t, f_html, crossing=opts.crossing)
