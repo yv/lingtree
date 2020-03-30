@@ -83,12 +83,10 @@ class Tree(object):
 
     def determine_tokenspan_all(self):
         "determines the tokenspan for all nodes and sorts children accordingly"
-        def by_pos(a, b):
-            return cmp(a.start, b.start)
         for node in self.bottomup_enumeration():
             determine_tokenspan(node)
-            node.children.sort(by_pos)
-        self.roots.sort(by_pos)
+            node.children.sort(key=lambda x: x.start)
+        self.roots.sort(key=lambda x: x.start)
 
     def check_roots(self):
         for n in self.roots:

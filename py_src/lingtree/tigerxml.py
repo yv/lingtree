@@ -8,13 +8,11 @@ from .tree import Tree, TerminalNode, NontermNode
 import xml.etree.cElementTree as etree
 
 
-def get_terminals(graph, term_ref, encoding):
+def get_terminals(graph, term_ref):
     """makes terminals out of all the TigerXML terminals"""
     terminals = []
     for n in graph.find('terminals').findall('t'):
         w = n.attrib['word']
-        if encoding is not None:
-            w = w.encode(encoding)
         trm = TerminalNode(n.attrib['pos'], w)
         for k in ['morph', 'lemma']:
             if k in n.attrib:
@@ -28,7 +26,7 @@ def get_terminals(graph, term_ref, encoding):
 # pylint:disable=C0103
 
 
-def tiger_sent(node, encoding=None):
+def tiger_sent(node):
     """decodes the TigerXML sentence from the given XML node"""
     t = Tree()
     term_ref = {}
@@ -37,7 +35,7 @@ def tiger_sent(node, encoding=None):
         t.sent_no = int(node.attrib['id'])
     except ValueError:
         t.sent_no = node.attrib.get('id', None)
-    t.terminals = get_terminals(graph, term_ref, encoding)
+    t.terminals = get_terminals(graph, term_ref)
     for n in graph.find('nonterminals').findall('nt'):
         nt = NontermNode(n.attrib['cat'])
         nt.xml_id = n.attrib['id']
@@ -111,16 +109,16 @@ def make_string(n, attname):
             return str(val)
 
 
-def read_trees(fname, encoding):
+def read_trees(fname):
     """yields the sequence of trees in an XML file"""
     # pylint:disable=W0612
     for ev, elem in etree.iterparse(fname):
         if elem.tag == 's':
-            yield tiger_sent(elem, encoding)
+            yield tiger_sent(elem)
             elem.clear()
 
 
-def encode_tree(t, encoding='ISO-8859-15'):
+def encode_tree(t):
     """returns an XML node describing a tree"""
     assign_node_ids(t)
     s_node = etree.Element('s')
@@ -130,11 +128,7 @@ def encode_tree(t, encoding='ISO-8859-15'):
     for i, n in enumerate(t.terminals):
         trm = etree.SubElement(trms_node, 't')
         trm.attrib['id'] = n.xml_id
-        if isinstance(n.word, str):
-            n_word = n.word.encode(encoding)
-        else:
-            n_word = n.word
-        trm.attrib['word'] = n_word
+        trm.attrib['word'] = n.word
         trm.attrib['pos'] = n.cat
         trm.attrib['morph'] = make_string(n, 'morph')
     nts_node = etree.SubElement(graph, 'nonterminals')
@@ -164,7 +158,7 @@ def encode_tree(t, encoding='ISO-8859-15'):
 def tiger2export_main(args):
     """converts one file into .export format (body only)"""
     from . import export
-    for i, t in enumerate(read_trees(args[0], 'ISO-8859-15')):
+    for i, t in enumerate(read_trees(args[0])):
         # BOS ([0-9]+) +[^ ]+ +[^ ]+ ([0-9]+)([ \t]*%%.*)?')
         print("#BOS %d -1 -1 0" % (i + 1,))
         export.write_sentence_tabs(t, sys.stdout)

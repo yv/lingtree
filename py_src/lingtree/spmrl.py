@@ -91,22 +91,14 @@ def recode_utf8_latin1(w):
     return w.decode('UTF-8').encode('ISO-8859-15')
 
 
-def read_spmrl(f, props2morph=None, encoding=None):
-    if encoding in [None, 'UTF-8']:
-        recode_fn = None
-    elif encoding in ['ISO-8859-15']:
-        recode_fn = recode_utf8_latin1
+def read_spmrl(f, props2morph=None):
     for l in f:
-        node = spmrl2nodes(tokenize_spmrl(l.strip()), recode_fn, props2morph)
+        node = spmrl2nodes(tokenize_spmrl(l.strip()), props2morph)
         t = penn.node2tree(node, node.cat == 'VROOT')
         yield t
 
 
-def read_lattices(f, props2morph=None, encoding=None):
-    if encoding in [None, 'UTF-8']:
-        recode_fn = None
-    elif encoding in ['ISO-8859-15']:
-        recode_fn = recode_utf8_latin1
+def read_lattices(f, props2morph=None):
     result = []
     for l in f:
         line = l.strip().split()
@@ -118,8 +110,6 @@ def read_lattices(f, props2morph=None, encoding=None):
                 result = []
         else:
             s_start, s_end, word, lemma, cpos, pos, props0, w_idx = line
-            if recode_fn is not None:
-                word = recode_fn(word)
             n = TerminalNode(pos, word)
             n.lemma = lemma
             n.start = int(s_start)
@@ -133,7 +123,7 @@ def read_lattices(f, props2morph=None, encoding=None):
         yield t
 
 
-def spmrl2cqp(f, columns, want_morph=False, exclude_morph=frozenset(),
+def spmrl2cqp(f, columns, want_morph=False, exclude_morph=set(),
               f_out=None):
     if f_out is None:
         f_out = sys.stdout
@@ -161,5 +151,5 @@ spmrl2cqp_opt.add_option('-M', action='store_true',
 
 def spmrl2cqp_main(argv=None):
     (opts, args) = spmrl2cqp_opt.parse_args(argv)
-    spmrl2cqp(file(args[0]), opts.columns, opts.want_morph,
+    spmrl2cqp(open(args[0], 'r', encoding='UTF-8'), opts.columns, opts.want_morph,
               set(opts.columns+opts.exclude))

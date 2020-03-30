@@ -2,7 +2,6 @@
 Reading and writing tabular formats
 '''
 from lingtree import TerminalNode
-from itertools import izip
 
 class AttrColumn(object):
     #TODO: is this needed? Can we emulate elkfed.mmax.tabular? should we?
@@ -47,7 +46,7 @@ class CoNLLReader(object):
             trm.end = i+1
             trm.syn_label = row[10]
             terminals.append(trm)
-        for row, trm in izip(rows, terminals):
+        for row, trm in zip(rows, terminals):
             head = row[8]
             if head == '0':
                 trm.syn_parent = None
