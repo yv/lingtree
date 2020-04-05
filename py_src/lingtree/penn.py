@@ -64,19 +64,29 @@ def number_ids(t, node, start=0):
             pos = number_ids(t, n, pos)
         return pos
 
+def number_nodes(node, node_table, start=500):
+    if node.isTerminal():
+        return start
+    for n in node.children:
+        start = number_nodes(n, start)
+    node.id = start
+    node_table[start] = node
+    return start+1
 
 def node2tree(node, has_vroot=True):
     t = Tree()
     t.terminals = []
     if has_vroot:
         t.roots = node.children
+        for root in t.roots:
+            root.parent = None
     else:
         t.roots = [node]
     number_ids(t, node)
     return t
 
 
-def spmrl2nodes(lst, recode_word=None, split_dash=True):
+def spmrl2nodes(lst, split_dash=True):
     idx = 0
     result = []
     while idx < len(lst):
@@ -90,8 +100,6 @@ def spmrl2nodes(lst, recode_word=None, split_dash=True):
             if lst[idx+1][0] == 'W':
                 # terminal symbol
                 word = lst[idx+1][1]
-                if recode_word is not None:
-                    word = recode_word(word)
                 n = TerminalNode(lab, word)
                 n.edge_label = elabel
                 result.append(n)

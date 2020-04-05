@@ -10,9 +10,9 @@ setup(name='LingTree',
       description='Python Package for Eclectic Linguistic Processing',
       author='Yannick Versley',
       author_email='yannick@inteligile.com',
-      packages=['lingtree'],
+      packages=['lingtree', 'lingtree.eval'],
       package_dir={'':'py_src'},
-      install_requires=['future', 'PyYAML'],
+      install_requires=['future', 'PyYAML', 'mock >= 2.0.0'],
       entry_points={
             'console_scripts': [
                   'lingtree_convert=lingtree:convert_main',

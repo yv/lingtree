@@ -48,7 +48,7 @@ def read_mrg_trees(fname, encoding=None):
     sent_no = 1
     if encoding is None:
         encoding = detect_encoding(fname)
-    for l in open(fname, 'r', encoding):
+    for l in open(fname, 'r', encoding=encoding):
         from . import penn, tree
         if l[:2] == '<s':
             m = stag_re.match(l)

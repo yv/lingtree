@@ -305,7 +305,7 @@ def write_sentence_tabs(t, f, fmt=3):
                                     pad_with_tabs(n.morph, 2),
                                     pad_with_tabs(n.edge_label, 1),
                                     parent_id, extra))
-    all_nodes = t.node_table.values()
+    all_nodes = list(t.node_table.values())
     all_nodes.sort(key=lambda n: n.id)
     if fmt == 4:
         lemma_column = pad_with_tabs('--', 3)
@@ -341,40 +341,6 @@ def write_sentence_tabs(t, f, fmt=3):
                                       pad_with_tabs(n.attr, 2),
                                       pad_with_tabs(n.edge_label, 1),
                                       parent_id, extra))
-
-
-def latin2utf(s):
-    if s is None:
-        return None
-    if isinstance(s, str):
-        us = s
-    else:
-        us = s.decode('ISO-8859-15')
-    return us.encode('UTF-8')
-
-
-def utf2latin(s):
-    if not isinstance(s, (str, bytes)):
-        return s
-    if isinstance(s, str):
-        us = s
-    else:
-        us = s.decode('UTF-8')
-    return us.encode('ISO-8859-15', 'replace')
-
-
-def uni2str(s, encoding):
-    if encoding is None:
-        return s
-    if isinstance(s, str):
-        return s.encode(encoding)
-    return s
-
-
-def str2uni(s, encoding):
-    if isinstance(s, bytes):
-        return s.decode(encoding)
-    return s
 
 
 def to_json(t):
