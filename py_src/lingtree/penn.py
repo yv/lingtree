@@ -60,8 +60,10 @@ def number_ids(t, node, start=0):
         return start+1
     else:
         pos = start
+        node.start = start
         for n in node.children:
             pos = number_ids(t, n, pos)
+        node.end = pos
         return pos
 
 def number_nodes(node, node_table, start=500):
