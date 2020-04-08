@@ -2,7 +2,7 @@ import unittest
 from io import StringIO
 from mock import mock_open, patch
 from lingtree.penn import line2parse, node2tree, number_nodes
-from lingtree.export import write_export_file, read_trees
+from lingtree.export import write_export_file, read_trees, copy_tree
 
 test_s1 = u"(VROOT (S (NE-SB Klaus) (VVFIN-HD mag) (NN-OA Pizza)) ($. .))"
 t1 = node2tree(line2parse(test_s1))
@@ -26,3 +26,13 @@ class TestExport(unittest.TestCase):
         with m("mock-1.export", "r") as f:
             trees = list(read_trees(f))
         self.assertEqual(len(trees), 2)
+
+    def test_copy(self):
+        t2 = copy_tree(t1)
+        f = StringIO()
+        write_export_file(f, [t1, t1])
+        text1 = f.getvalue()
+        f = StringIO()
+        write_export_file(f, [t2, t2])
+        text2 = f.getvalue()
+        self.assertEqual(text1, text2)

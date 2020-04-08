@@ -371,8 +371,7 @@ def to_json(t):
                       n.edge_label, parent_id,
                       getattr(n, 'lemma', None)]+extras)
     nonterms = []
-    all_nodes = t.node_table.values()
-    all_nodes.sort(key=lambda n: n.id)
+    all_nodes = sorted(t.node_table.values(), key=lambda n: n.id)
     for n in all_nodes:
         if n.parent:
             parent_id = n.parent.id

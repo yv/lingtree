@@ -61,7 +61,6 @@ def read_mrg_trees(fname, encoding=None):
         n = penn.line2parse(l)
         t = tree.Tree()
         penn.number_ids(t, n)
-        # t.determine_tokenspan_all()
         t.roots = n.children
         for nn in n.children:
             nn.parent = None
