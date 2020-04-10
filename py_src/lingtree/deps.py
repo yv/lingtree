@@ -197,7 +197,7 @@ class SimpleDepExtractor:
         else:
             pos = self.headRules[None].findHead(node.children)
         #assert pos>=0 and pos<len(node.children)
-        if pos < 0 or pos >= len(node.children):
+        if pos is None or pos < 0 or pos >= len(node.children):
             warning_handler('nohead', (node,))
             pos = len(node.children) - 1
         head_node = node.children[pos]
